@@ -67,3 +67,119 @@ ggplot(data = wb_subset, aes(x = year, y = co2_emissions_kt)) +
   facet_wrap(~country)
 ```
 
+## filtering rows
+
+Exammple 1: Filter to only keep exact matches
+
+```{r}
+ex_1 <- starwars |> 
+  filter(height > 180)
+```
+
+```{r}
+ex_2 <- starwars |> 
+  filter(eye_color == "blue")
+```
+
+```{r}
+# Make a subset that only contains rows where the homeworld is Naboo
+ex_3 <- starwars |> 
+  filter(homeworld == "Naboo")
+```
+
+
+Examples: filtering to satisfy multiple conditions
+
+```{r}
+ex_4 <- starwars |> 
+  filter(height > 180 & homeworld == "Tatooine")
+```
+
+```{r}
+# Create a subset where the hair color is brown and species is human
+ex_5 <- starwars |> 
+  filter(hair_color == "brown" & species == "Human")
+```
+
+### filtering OR statements
+
+```{r}
+ex_6 <- starwars |> 
+  filter(height > 180 | eye_color == "yellow")
+```
+
+```{r}
+# create a subset that keeps rows if homeworld is Endor OR species is droid
+ex_7 <- starwars |> 
+  filter(homeworld == "Endor" | species == "Droid")
+```
+
+```{r}
+# referring to single variables values with OR operator
+ex_8 <- starwars |> 
+  filter(eye_color == "blue" | eye_color == "brown" | eye_color == "red")
+
+# Or the exact same thing efficiently 
+ex_9 <- starwars |> 
+  filter(eye_color %in% c("blue", "brown", "red"))
+
+# THIS IS NEVER WHAT YOU WANT TO DO
+# This is asking does the first row match blue, does the second row match brown, does the third row match red, does the fourth row match blue, does the fifth row match brown, does the sixth row match red, etc. 
+ex_10 <- starwars |> 
+  filter(eye_color == c("blue", "brown", "red"))
+
+# Create a subset where the homeworld is Endor OR Tatooine OR Naboo AND height < 150
+# comma will read as an AND for filter function
+ex_11 <- starwars |> 
+  filter(homeworld %in% c("Endor", "Tatooine", "Naboo"),
+         height < 150)
+```
+
+Examples with the negate!
+
+```{r}
+ex_12 <- starwars |> 
+  filter(species != "Human")
+
+ex_13 <- starwars |> 
+  filter(!species %in% c("Human", "Ewok", "Wookiee"))
+```
+
+## `select()`: select or exclude columns
+
+```{r}
+# Select by name
+ex_14 <- wb_clean |> 
+  select(country, year, co2_emissions_kt)
+
+# range of columns by name or position
+ex_15 <- wb_clean |> 
+  select(year:fossil_fuel_cons_pct)
+
+# Exclude columns from a range
+# negate (!) is for a logical statement: true, false
+ex_16 <- wb_clean |> 
+  select(year:fossil_fuel_cons_pct, -access_electricity_pp)
+```
+
+
+```{r}
+# multiple pipe steps together
+ex_17 <- wb_clean |> 
+  filter (country %in% c("Bolivia", "Chile", "Mexico")) |> 
+  select(country:fossil_fuel_cons_pct)
+```
+
+```{r}
+# use select to select specific columns, rename the columns, and reorder the columns
+ex_18 <- wb_clean |> 
+  select(year_new = year, 
+         emissions = co2_emissions_kt, 
+         country_name = country)
+
+# Select only columns for country, year, and water stress and reorder them as year, country water stress, then filter to only include observations for any 3 countries of your choice
+ex_19 <- wb_clean |> 
+  select(year, country, water_stress) |> 
+  filter(country %in% c("Argentina", "Belgium", "Cambodia"))
+```
+
