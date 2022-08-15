@@ -183,3 +183,102 @@ ex_19 <- wb_clean |>
   filter(country %in% c("Argentina", "Belgium", "Cambodia"))
 ```
 
+### `rename`
+```{r}
+# rename columns names with rename function and specifying new name = old name
+ex_20 <- wb_clean |> 
+  rename(ffcp = fossil_fuel_cons_pct,
+         ws = water_stress)
+
+ex_21 <- wb_clean |> 
+  rename(acfpp = access_clean_fuels_pp,
+         co2 = co2_emissions_kt)
+```
+
+### `mutate`: update an existing column, or add a new one
+
+If you assign a NEW column name, it will add a new column to the end of your data frame. If you assign an existing column name, it will overwrite that column
+
+```{r}
+# add a new column called "co2_emissions_t" to convert co2 emissions in kt to tons
+ex_22 <- wb_clean |> 
+  mutate(co2_emissions_t = co2_emissions_kt * 1000) |> 
+  relocate(co2_emissions_t, .after = co2_emissions_kt)
+
+ex_23 <- wb_clean |> 
+  mutate(yay = "YAY")
+
+# update class of year column to character
+ex_24 <- wb_clean |> 
+  mutate(year = as.character(year))
+
+# update class of year column to numeric
+ex_25 <- ex_24 |> 
+  mutate(year = as.numeric(year))
+
+# dplyr::relocate()
+# use .after and .before to move column in data frame
+ex_26 <- wb_clean |> 
+  relocate(water_stress, .after = year)
+```
+
+### `group_by |> summarize`
+
+group_by: Creates groups under the hood based on variables you specify. 
+
+summarize: apply your functions to EACH GROUP, and return them in a nice summary table
+
+```{r}
+# filter down by homeworld of Naboo and Tatooine, calculate average height and average mass by species by homeworld in star wars data set
+ex_27 <- starwars |> 
+  filter(homeworld %in% c("Naboo", "Tatooine")) |> 
+  group_by(species, homeworld) |> 
+  summarize(mean_height = mean(height, na.rm = TRUE),
+            mean_mass = mean(mass, na.rm = TRUE))
+```
+
+```{r}
+# frequency table, column indicates count of observations
+df <- tribble(
+  ~species, ~legnth, ~number, 
+  "lobster", 12, 4,
+  "lobster", 14, 6,
+  "lobster", 15, 2
+)
+
+# create a case table so each observation has it's own row 
+df_case <- df |> 
+  uncount(number)
+```
+
+```{r}
+# count() counts observations
+# combination of group_by summarize n()
+
+starwars |> 
+  count(homeworld, species)
+
+# the same thing can be accomplished with group_by |> summarize, benefit is you can add more functions
+starwars |> 
+  group_by(homeworld, species) |> 
+  summarize(size = n(),
+            mean_height = mean(height, na.rm = TRUE))
+```
+
+Practice example: 
+- Start from wb_clean
+- Only keep observations for Nicaragua, Ecuador, Peru, and Chile AND for years greater than 2005
+- Only keep columns for country, year and co2 emissions
+- Add a new column that is co2 emissions converted to megatons
+- Find the total co2 emissions in megatons for the years still in the dataset by country
+
+```{r}
+ex_28 <- wb_clean |> 
+  filter(country %in% c("Nicaragua", "Ecuador", "Peru", "Chile"),
+         year > 2005) |> 
+  select(country, year, co2_emissions_kt) |> 
+  mutate(co2_emissions_mt = co2_emissions_kt/1000) |> 
+  group_by(country) |> 
+  summarize(total_co2_mt = sum(co2_emissions_mt, na.rm = TRUE))
+```
+
